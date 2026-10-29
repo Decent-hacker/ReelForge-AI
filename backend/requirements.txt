@@ -1,0 +1,4 @@
+# Resolve in a compatible, isolated Windows Python environment and freeze the tested result.
+# These package names are verified against the official projects; no untested versions are invented.
+faster-whisper
+whisperx

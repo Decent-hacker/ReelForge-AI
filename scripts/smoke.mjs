@@ -1,0 +1,12 @@
+import {mkdir,writeFile} from 'node:fs/promises';
+const launch=new URL(process.argv[2]||''),token=launch.hash.slice(1);
+if(launch.protocol!=='http:'||!['127.0.0.1','localhost'].includes(launch.hostname)||!token)throw new Error('Pass the local session URL printed by npm start.');
+const headers={'X-ReelForge-Token':token},html=await fetch(launch.origin),content=await html.text();
+const bootstrap=await fetch(launch.origin+'/api/bootstrap',{headers}),b=await bootstrap.json();
+if(!bootstrap.ok)throw new Error(b.error||'Bootstrap failed.');
+const urls=[...content.matchAll(/(?:src|href)="(\.?\/assets\/[^"]+)"/g)].map(m=>new URL(m[1],launch.origin).pathname);
+const assets=await Promise.all(urls.map(async url=>({url,status:(await fetch(launch.origin+url)).status})));
+const timelines=await Promise.all(b.projects.map(async p=>({projectId:p.id,status:(await fetch(launch.origin+'/api/projects/'+p.id+'/timeline',{headers})).status,assets:p.assets.length})));
+const result={at:new Date().toISOString(),ui:html.status,bootstrap:bootstrap.status,assets,timelines,speech:b.health.tools.speech.available,remotion:b.health.tools.remotion.available,note:'HTTP/build smoke only. Browser interactions and media processing are separate acceptance checks.'};
+await mkdir('artifacts',{recursive:true});await writeFile('artifacts/application-smoke.json',JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));
+if(html.status!==200||bootstrap.status!==200||!assets.length||assets.some(x=>x.status!==200)||timelines.some(x=>x.status!==200))process.exitCode=1;

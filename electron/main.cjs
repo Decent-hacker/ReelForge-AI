@@ -1,0 +1,21 @@
+const {app,BrowserWindow,dialog,ipcMain,shell}=require('electron');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+const fs=require('node:fs/promises');
+const {dataDirectory,providerLink,toolDialog}=require('./policy.cjs');
+let instance,win;
+app.setName('ReelForge AI');
+app.whenReady().then(async()=>{
+  const {createServer}=await import(pathToFileURL(path.join(__dirname,'../server/index.mjs')).href);
+  instance=await createServer({root:dataDirectory({isPackaged:app.isPackaged,userData:app.getPath('userData'),developmentRoot:path.join(__dirname,'..'),override:process.env.REELFORGE_DATA}),port:0});
+  win=new BrowserWindow({width:1500,height:980,minWidth:1024,minHeight:720,backgroundColor:'#141518',title:'ReelForge AI',webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  win.webContents.setWindowOpenHandler(({url})=>{if(providerLink(url))void shell.openExternal(url);return {action:'deny'};});
+  win.webContents.on('will-navigate',(event,url)=>{if(new URL(url).origin!==instance.origin)event.preventDefault();});
+  win.webContents.session.setPermissionRequestHandler((_web,_permission,callback)=>callback(false));
+  const sender=event=>{if(event.sender!==win.webContents||new URL(event.senderFrame.url).origin!==instance.origin)throw new Error('Untrusted IPC sender.');};
+  ipcMain.handle('pick-tool',async(event,key)=>{sender(event);const result=await dialog.showOpenDialog(win,toolDialog(key));return result.canceled?null:result.filePaths[0];});
+  ipcMain.handle('export-video',async(event,id)=>{sender(event);const {p,file,name}=await instance.service.exportInfo(id);const result=await dialog.showSaveDialog(win,{defaultPath:name,filters:[{name:'MP4 video',extensions:['mp4']}]});if(result.canceled)return null;await fs.copyFile(file,result.filePath);await fs.writeFile(result.filePath+'.quality.json',JSON.stringify({output:p.output,gate:p.gate,report:p.report},null,2));return result.filePath;});
+  win.setMenuBarVisibility(false);await win.loadURL(instance.url);
+}).catch(error=>{dialog.showErrorBox('ReelForge AI could not start',error.message);app.quit();});
+app.on('window-all-closed',()=>app.quit());
+let quitting=false;app.on('before-quit',event=>{if(instance&&!quitting){event.preventDefault();quitting=true;instance.close().finally(()=>app.quit());}});

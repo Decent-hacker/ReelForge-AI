@@ -1,0 +1,15 @@
+export type Asset={id:string;role:string;name:string;file:string;tags:string[]};
+export type StockCandidate={id:string;provider:string;width:number;height:number;duration:number;score:number;sourceURL:string;creator:string;licenseURL:string;attribution:string;ranking:string};
+export type RuntimeSettings={ffmpeg:string;ffprobe:string;whisper:string;model:string;python:string;asrModel:string;alignModel:string;browser:string;renderer:'ffmpeg'|'remotion';speechEngine:'faster-whisper'|'whisper.cpp';planningEngine:'local'|'gemini';geminiModel:string;stockProvider:'local'|'pexels';autoStock:boolean};
+export type Overlay={type:'callout'|'statistic';start:number;end:number;text?:string;value?:number;unit?:string;label?:string};
+export type Word={text:string;start:number;end:number;keyword:boolean};
+export type Scene={id:string;start:number;end:number;text:string;title:string;zoom:number;brollId:string|null;brollStart:number;brollEnd:number;needsBroll:boolean;note:string};
+export type Preferences={width:number;height:number;fps:number;language:string;pace:number;zoom:number;accent:string;musicVolume:number;captionFont:string;instructions:string;mandatory:string[]};
+export type Plan={schema:number;duration:number;sourceDuration:number;cuts:{start:number;end:number}[];words:Word[];scenes:Scene[];warnings:string[];reference:null|{medianShotSeconds:number|null;cutTimes:number[];limitation:string};planner:string;instructions:string;transcriptProvenance:string;overlays?:Overlay[]};
+export type Evidence={kind:string;passed:boolean;outputHash:string;planHash:string;[key:string]:unknown};
+export type Feature={mandatory:boolean;state:string;reason:string;evidence:Evidence[];history:{state:string;reason:string;at:string}[]};
+export type RenderedMedia={hash:string;planHash:string;duration:number;width:number;height:number;fps:number;createdAt?:string};
+export type AIProposal={id:string;summary:string;baseHash:string;next:{plan:Plan;preferences:Preferences};provenance:{model:string;provider:string}};
+export type Project={id:string;name:string;createdAt:string;updatedAt:string;revision:number;assets:Asset[];preferences:Preferences;plan:Plan|null;job:null|{id:string;status:string;kind:string;stage?:string;progress:number|null;error?:string};output:null|RenderedMedia;preview?:null|RenderedMedia;aiProposal?:AIProposal|null;assetSearch?:{id:string;query:string;createdAt:string;candidates:StockCandidate[]};report:null|Record<string,Feature>;gate?:{complete:boolean;label:string;blockers:{key:string;feature:string;reason:string}[]};log:{at:string;level:string;message:string}[]};
+export type Health={node:string;platform:string;arch:string;tools:Record<string,{available:boolean;path?:string;version?:string;error?:string}>;providers?:{gemini:{configured:boolean;keyConfigured:boolean;model:string|null};pexels:{configured:boolean};visuals:{id:string;configured:boolean}[]}};
+declare global{interface Window{reelforge?:{desktop:boolean;pickTool:(key:string)=>Promise<string|null>;exportVideo:(id:string)=>Promise<string|null>}}}

@@ -1,0 +1,12 @@
+import type {Plan,Asset,Preferences} from '../types';
+export type TrackId='video'|'broll'|'captions'|'graphics'|'sfx'|'voice'|'music';
+export type Selection={track:TrackId;sceneId?:string;wordIndex?:number;overlayIndex?:number};
+export type Draft={plan:Plan|null;preferences:Preferences};
+export type Clip={id:string;start:number;end:number;label:string;selection:Selection;missing?:boolean;edit:'range'|'boundary'|'none'};
+export const TRACKS:{id:TrackId;name:string;code:string;icon:string}[];
+export function timecode(seconds:number,fps?:number):string;
+export function sourceTime(time:number,plan:Plan|null):number;
+export function outputTime(time:number,plan:Plan|null):number;
+export function clipsForTrack(track:TrackId,plan:Plan|null,assets:Asset[],mandatory:string[]):Clip[];
+export function editTimeline(plan:Plan,selection:Selection,mode:'move'|'start'|'end',delta:number,options?:{fps?:number;snap?:boolean}):Plan;
+export function proposeDirector(command:string,draft:Draft,selection:Selection|null,time:number,assets:Asset[]):{label:string;detail:string;next:Draft};

@@ -1,0 +1,33 @@
+{
+  "name": "reelforge-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Local reference-based editor with evidence-backed quality gates",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "build": "node scripts/typecheck.mjs && node scripts/build.mjs",
+    "typecheck": "node scripts/typecheck.mjs",
+    "bundle": "node scripts/build.mjs",
+    "start": "node server/index.mjs",
+    "desktop": "electron .",
+    "test": "node --test tests/*.test.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "qa:ui": "node scripts/ui-qa.mjs",
+    "acceptance": "node scripts/acceptance.mjs",
+    "test:python": "python -m unittest discover -s backend -p test_*.py",
+    "package:windows": "node scripts/package-windows.mjs"
+  },
+  "engines": { "node": ">=22.13.0" },
+  "dependencies": { "react": "18.3.1", "react-dom": "18.3.1", "remotion": "^4.0.0", "@remotion/bundler": "^4.0.0", "@remotion/renderer": "^4.0.0" },
+  "devDependencies": {
+    "@vitejs/plugin-react": "4.7.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "autoprefixer": "10.6.1",
+    "postcss": "8.5.30",
+    "tailwindcss": "3.4.19",
+    "typescript": "6.0.3",
+    "vite": "5.4.21"
+  }
+}
